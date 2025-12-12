@@ -1,25 +1,24 @@
 package billsplitter.practice.dto.request;
 
 import billsplitter.practice.dto.PersonCostDto;
-import jakarta.validation.constraints.DecimalMin;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.util.List;
 
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class BillRequestDto {
 
-    @NotEmpty(message = "People list must not be empty")
-    private List<PersonCostDto> people;
+    // Общая сумма без комиссии
+    private BigDecimal totalCost;
 
-    @NotNull(message = "Shared cost is required")
-    @DecimalMin(value = "0.0", message = "Shared cost must be >= 0")
-    private BigDecimal sharedCost;
+    // Комиссия в процентах (например: 10 = 10%)
+    private BigDecimal commissionPercent;
 
-    @NotNull(message = "Commission persent is required")
-    @DecimalMin(value = "0.0", message = "Commission must be >= 0")
-    private BigDecimal commissionPersent;
+    // Список людей и их расходы
+    private List<PersonCostDto> persons;
 }

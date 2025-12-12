@@ -2,59 +2,42 @@ package billsplitter.practice.service.impl;
 
 import billsplitter.practice.dto.request.BillRequestDto;
 import billsplitter.practice.dto.response.BillResponseDto;
+import billsplitter.practice.entity.Bill;
+import billsplitter.practice.mapper.BillMapper;
 import billsplitter.practice.service.BillService;
-import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
-import lombok.experimental.FieldDefaults;
-import org.mapstruct.ap.internal.util.RoundContext;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 
 @Service
 @RequiredArgsConstructor
-@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class BillServiceImpl implements BillService {
+
+    private final BillMapper billMapper;
 
     @Override
     public BillResponseDto split(BillRequestDto request) {
-        return null;
-    }
 
-    @Override
-    public BillResponseDto calculateBill(BillRequestDto request) {
-        BigDecimal commission = request.getCommissionPersent()
-                .divide(BigDecimal.valueOf(100), 4, RoundingMode.HALF_UP);
+        // 1) DTO → Entity
+        Bill bill = billMapper.toEntity(request);
 
-        List<PersonCostDto> people = request.getSharedCost();
+        // 2) Вычисление комиссии в валюте
+        BigDecimal commissionValue = bill.getTotalCost()
+                .multiply(bill.getCommissionPercent())
+                .divide(BigDecimal.valueOf(100));
 
-        //считаем индивидуальные расходы
-        BigDecimal totalPersonalCost = people.stream()
-                .map(PersonCostDto::getPersonalCost)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        // 3) Общая сумма с учетом комиссии
+        BigDecimal CommissionPercent = bill.getTotalCost().add(commissionValue);
+        bill.setCommissionPercent(CommissionPercent);
 
-        //считаем общее блюдо
-        BigDecimal sharedCost = request.getSharedCost();
+        // 4) Entity → Response
+        BillResponseDto response = billMapper.toResponse(bill);
 
-        //разделение sharedcost поровну
-        BigDecimal sharedPerPerson = sharedCost
-                .divide(BigDecimal.valueOf(100), 4, RoundingMode.HALF_UP);
+        // 5) Устанавливаем поле "commission" вручную
+        response.setCommission(commissionValue);
 
-        //комиссия для каждого
-        for (PersonDto p : people) {
-            BigDecimal total = p.getPersonalCost().add(sharedPerPerson);
-            BigDecimal totalCommission = total.add(total.multiply(commission));
-
-            p.setFinalCost(totalWithCommission.setScale(2, RoundingMode.HALF_UP));
-        }
-
-        //total
-        BigDecimal totalBill = totalPersonalCost
-                .add(sharedCost)
-                .add(totalPersonalCost.add(sharedCost).multiply(commission))
-                .setScale(2, RoundingMode.HALF_UP);
-
-        return new BillResponseDto(people, totalBill);
+        // 6) Возвращаем ответ
+        return response;
     }
 }

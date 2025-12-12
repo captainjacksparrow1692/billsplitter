@@ -1,21 +1,18 @@
 package billsplitter.practice.dto;
 
-import jakarta.validation.constraints.DecimalMin;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class PersonCostDto {
-    @NotBlank(message = "Person name must not be empty")
+
     private String name;
 
-    @NotNull(message = "Personal cost is required")
-    @DecimalMin(value ="0.0", message = "Personal cost must be > 0")
-    private BigDecimal personalCost;
-
-    //вычисление
-    private BigDecimal finalCost;
+    // Сколько заказал данный человек
+    private BigDecimal cost;
 }
