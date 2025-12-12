@@ -32,7 +32,7 @@ class BillServiceImplTest {
     @Test
     void split_shouldCalculateCommissionAndTotalCorrectly() {
 
-        // ---------- INPUT DTO ----------
+        //INPUT DTO
         BillRequestDto request = new BillRequestDto();
         request.setTotalCost(BigDecimal.valueOf(100000));
         request.setCommissionPercent(BigDecimal.TEN); // 10%
@@ -47,7 +47,7 @@ class BillServiceImplTest {
 
         request.setPersons(List.of(p1, p2));
 
-        // ---------- ENTITY ----------
+        //ENTITY
         Bill bill = new Bill();
         bill.setTotalCost(BigDecimal.valueOf(100000));
         bill.setCommissionPercent(BigDecimal.TEN);
@@ -56,7 +56,7 @@ class BillServiceImplTest {
                 new Person("Vali", BigDecimal.valueOf(20000))
         ));
 
-        // MapStruct stub
+        //MapStruct stub
         when(billMapper.toEntity(request)).thenReturn(bill);
 
         BillResponseDto responseDto = new BillResponseDto();
@@ -64,10 +64,10 @@ class BillServiceImplTest {
 
         when(billMapper.toResponse(bill)).thenReturn(responseDto);
 
-        // ---------- TEST ----------
+        //TEST
         BillResponseDto response = billService.split(request);
 
-        // --- Expected ---
+        //Expected
         BigDecimal expectedCommission = BigDecimal.valueOf(10000);   // 10% from 100000
         BigDecimal expectedTotalWithCommission = BigDecimal.valueOf(110000);
 
