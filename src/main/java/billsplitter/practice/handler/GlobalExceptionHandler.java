@@ -1,6 +1,6 @@
 package billsplitter.practice.handler;
 
-import billsplitter.practice.dto.ErrorDto.ErrorDto;
+import billsplitter.practice.dto.ErrorDto;
 import billsplitter.practice.exception.BillNotFoundException;
 import billsplitter.practice.exception.IncorrectTotalCostException;
 import billsplitter.practice.exception.InvalidBillException;

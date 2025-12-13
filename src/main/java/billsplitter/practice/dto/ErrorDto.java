@@ -1,4 +1,4 @@
-package billsplitter.practice.dto.ErrorDto;
+package billsplitter.practice.dto;
 import java.time.LocalDateTime;
 
 public class ErrorDto {
