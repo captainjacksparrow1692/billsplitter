@@ -2,6 +2,7 @@ package billsplitter.practice.handler;
 
 import billsplitter.practice.dto.ErrorDto.ErrorDto;
 import billsplitter.practice.exception.BillNotFoundException;
+import billsplitter.practice.exception.IncorrectTotalCostException;
 import billsplitter.practice.exception.InvalidBillException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,6 +28,11 @@ public class GlobalExceptionHandler {
                 "BILL_NOT_FOUND",
                 ex.getMessage()
         );
+    }
+
+    @ExceptionHandler(IncorrectTotalCostException.class)
+    public ResponseEntity<ErrorDto> handleIncorrectTotalCost(IncorrectTotalCostException ex) {
+        return buildError(HttpStatus.BAD_REQUEST, "INCORRECT_TOTAL_COST", ex.getMessage());
     }
 
     @ExceptionHandler(Exception.class)

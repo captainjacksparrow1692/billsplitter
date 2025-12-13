@@ -4,6 +4,7 @@ import billsplitter.practice.dto.PersonCostDto;
 import billsplitter.practice.dto.request.BillRequestDto;
 import billsplitter.practice.dto.response.BillResponseDto;
 import billsplitter.practice.entity.Bill;
+import billsplitter.practice.exception.*;
 import billsplitter.practice.mapper.BillMapper;
 import billsplitter.practice.service.BillService;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -25,21 +27,39 @@ public class BillServiceImpl implements BillService {
     public BillResponseDto split(BillRequestDto request) {
 
         Bill bill = billMapper.toEntity(request);
-        bill.setCommissionPercent(COMMISSION_PERCENT);
 
+        //ВАЛИДАЦИЯ
         validateBill(bill);
 
+        //Сумма всех персон
+        BigDecimal totalPersonsCost = bill.getPersons().stream()
+                .map(p -> {
+                    if (p.getCost() == null || p.getCost().signum() < 0) {
+                        throw new InvalidPersonCostException(p.getName());
+                    }
+                    return p.getCost();
+                })
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        if (totalPersonsCost.signum() == 0) {
+            throw new ZeroTotalPersonsCostException();
+        }
+
+        //Проверка общей суммы
+        if (bill.getTotalCost().compareTo(totalPersonsCost) != 0) {
+            throw new IncorrectTotalCostException(totalPersonsCost, bill.getTotalCost());
+        }
+
+        //Расчет комиссии
         BigDecimal commission = calculateCommission(bill.getTotalCost());
         BigDecimal totalWithCommission = bill.getTotalCost().add(commission);
 
-        BigDecimal totalPersonsCost = bill.getPersons().stream()
-                .map(p -> p.getCost() == null ? BigDecimal.ZERO : p.getCost())
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
+        //Расчет стоимости на каждого
         List<PersonCostDto> persons = bill.getPersons().stream()
                 .map(p -> calculatePersonCost(p.getName(), p.getCost(), totalPersonsCost, commission))
-                .toList();
+                .collect(Collectors.toList());
 
+        //Формирование ответа
         return new BillResponseDto(
                 totalWithCommission.setScale(2, RoundingMode.HALF_UP),
                 commission.setScale(2, RoundingMode.HALF_UP),
@@ -47,14 +67,14 @@ public class BillServiceImpl implements BillService {
         );
     }
 
-    //helpers
+    //HELPERS
 
     private void validateBill(Bill bill) {
         if (bill.getTotalCost() == null || bill.getTotalCost().signum() <= 0) {
-            throw new IllegalArgumentException("Total cost must be greater than zero");
+            throw new InvalidTotalCostException();
         }
         if (bill.getPersons() == null || bill.getPersons().isEmpty()) {
-            throw new IllegalArgumentException("At least one person is required");
+            throw new EmptyPersonsException();
         }
     }
 
@@ -70,14 +90,10 @@ public class BillServiceImpl implements BillService {
             BigDecimal totalPersonsCost,
             BigDecimal commission
     ) {
-        BigDecimal safeCost = cost == null ? BigDecimal.ZERO : cost;
-
-        BigDecimal ratio = safeCost.divide(totalPersonsCost, 4, RoundingMode.HALF_UP);
-
-        BigDecimal result = safeCost
+        BigDecimal ratio = cost.divide(totalPersonsCost, 4, RoundingMode.HALF_UP);
+        BigDecimal costWithCommission = cost
                 .add(commission.multiply(ratio))
                 .setScale(2, RoundingMode.HALF_UP);
-
-        return new PersonCostDto(name, result);
+        return new PersonCostDto(name, costWithCommission);
     }
 }
