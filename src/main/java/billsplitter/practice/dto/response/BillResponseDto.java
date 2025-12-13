@@ -13,12 +13,9 @@ import java.util.List;
 @NoArgsConstructor
 public class BillResponseDto {
 
-    // Общая сумма с учётом комиссии
     private BigDecimal totalCost;
 
-    // Сумма комиссии в валюте (например: 12.50)
     private BigDecimal commission;
 
-    // Расчёт по каждому человеку
     private List<PersonCostDto> persons;
 }

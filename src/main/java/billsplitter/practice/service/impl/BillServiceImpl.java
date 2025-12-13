@@ -12,58 +12,72 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class BillServiceImpl implements BillService {
 
-    private final BillMapper billMapper;
+    private static final BigDecimal COMMISSION_PERCENT = BigDecimal.valueOf(10);
 
-    private static final BigDecimal FIXED_COMMISSION_PERCENT = BigDecimal.valueOf(10);
+    private final BillMapper billMapper;
 
     @Override
     public BillResponseDto split(BillRequestDto request) {
 
         Bill bill = billMapper.toEntity(request);
-        bill.setCommissionPercent(FIXED_COMMISSION_PERCENT);
+        bill.setCommissionPercent(COMMISSION_PERCENT);
 
-        if (bill.getTotalCost() == null || bill.getTotalCost().compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("Total cost must be greater than zero");
-        }
+        validateBill(bill);
 
-        if (bill.getPersons() == null || bill.getPersons().isEmpty()) {
-            throw new IllegalArgumentException("At least one person is required");
-        }
-
-        BigDecimal commissionValue = bill.getTotalCost()
-                .multiply(bill.getCommissionPercent())
-                .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
-
-        BigDecimal totalCost = bill.getTotalCost().add(commissionValue);
+        BigDecimal commission = calculateCommission(bill.getTotalCost());
+        BigDecimal totalWithCommission = bill.getTotalCost().add(commission);
 
         BigDecimal totalPersonsCost = bill.getPersons().stream()
-                .map(person -> person.getCost() != null ? person.getCost() : BigDecimal.ZERO)
+                .map(p -> p.getCost() == null ? BigDecimal.ZERO : p.getCost())
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         List<PersonCostDto> persons = bill.getPersons().stream()
-                .map(person -> {
-                    BigDecimal personCost = person.getCost() != null
-                            ? person.getCost()
-                            : BigDecimal.ZERO;
-                    BigDecimal ratio = personCost.divide(totalPersonsCost, 4, RoundingMode.HALF_UP);
-                    BigDecimal personCostWithCommission = personCost
-                            .add(commissionValue.multiply(ratio))
-                            .setScale(2, RoundingMode.HALF_UP);
-                    return new PersonCostDto(person.getName(), personCostWithCommission);
-                })
-                .collect(Collectors.toList());
+                .map(p -> calculatePersonCost(p.getName(), p.getCost(), totalPersonsCost, commission))
+                .toList();
 
-        BillResponseDto response = new BillResponseDto();
-        response.setTotalCost(totalCost.setScale(2, RoundingMode.HALF_UP));
-        response.setCommission(commissionValue.setScale(2, RoundingMode.HALF_UP));
-        response.setPersons(persons);
+        return new BillResponseDto(
+                totalWithCommission.setScale(2, RoundingMode.HALF_UP),
+                commission.setScale(2, RoundingMode.HALF_UP),
+                persons
+        );
+    }
 
-        return response;
+    //helpers
+
+    private void validateBill(Bill bill) {
+        if (bill.getTotalCost() == null || bill.getTotalCost().signum() <= 0) {
+            throw new IllegalArgumentException("Total cost must be greater than zero");
+        }
+        if (bill.getPersons() == null || bill.getPersons().isEmpty()) {
+            throw new IllegalArgumentException("At least one person is required");
+        }
+    }
+
+    private BigDecimal calculateCommission(BigDecimal totalCost) {
+        return totalCost
+                .multiply(COMMISSION_PERCENT)
+                .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+    }
+
+    private PersonCostDto calculatePersonCost(
+            String name,
+            BigDecimal cost,
+            BigDecimal totalPersonsCost,
+            BigDecimal commission
+    ) {
+        BigDecimal safeCost = cost == null ? BigDecimal.ZERO : cost;
+
+        BigDecimal ratio = safeCost.divide(totalPersonsCost, 4, RoundingMode.HALF_UP);
+
+        BigDecimal result = safeCost
+                .add(commission.multiply(ratio))
+                .setScale(2, RoundingMode.HALF_UP);
+
+        return new PersonCostDto(name, result);
     }
 }

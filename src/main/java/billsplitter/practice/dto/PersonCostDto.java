@@ -13,6 +13,5 @@ public class PersonCostDto {
 
     private String name;
 
-    // Сколько заказал данный человек
     private BigDecimal cost;
 }

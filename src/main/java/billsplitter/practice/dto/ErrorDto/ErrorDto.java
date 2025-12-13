@@ -1,0 +1,34 @@
+package billsplitter.practice.dto.ErrorDto;
+import java.time.LocalDateTime;
+
+public class ErrorDto {
+
+    private String code;
+    private String message;
+    private int status;
+    private LocalDateTime timestamp;
+
+    public ErrorDto(String code, String message, int status) {
+        this.code = code;
+        this.message = message;
+        this.status = status;
+        this.timestamp = LocalDateTime.now();
+    }
+
+    public String getCode() {
+        return code;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public int getStatus() {
+        return status;
+    }
+
+    public LocalDateTime getTimestamp() {
+        return timestamp;
+    }
+}
+

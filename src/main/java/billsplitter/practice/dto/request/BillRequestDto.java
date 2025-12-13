@@ -13,12 +13,9 @@ import java.util.List;
 @NoArgsConstructor
 public class BillRequestDto {
 
-    // Общая сумма без комиссии
     private BigDecimal totalCost;
 
-    // Комиссия в процентах (например: 10 = 10%)
     private BigDecimal commissionPercent;
 
-    // Список людей и их расходы
     private List<PersonCostDto> persons;
 }
