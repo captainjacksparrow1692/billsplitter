@@ -14,9 +14,9 @@ import java.util.List;
 public class BillResponseDto {
 
     // Общая сумма с учётом комиссии
-    private BigDecimal totalWithCommission;
+    private BigDecimal totalCost;
 
-    // Значение комиссии в валюте (например: 12.50)
+    // Сумма комиссии в валюте (например: 12.50)
     private BigDecimal commission;
 
     // Расчёт по каждому человеку

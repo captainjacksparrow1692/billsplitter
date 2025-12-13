@@ -14,6 +14,6 @@ public class Bill {
     private List<Person> persons;
     private BigDecimal sharedCost;
     private BigDecimal totalCost;
-    private BigDecimal CommissionPercent;
+    private BigDecimal commissionPercent;
 
 }

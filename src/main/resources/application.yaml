@@ -1,3 +1,59 @@
 spring:
   application:
     name: practice
+  # JPA configuration
+  datasource:
+    url: jdbc:postgresql://localhost:5432/postgres
+    username: postgres
+    password: 9376570167
+    driver-class-name: org.postgresql.Driver
+    tomcat:
+      test-on-borrow: true
+      validation-query: SELECT 1
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    open-in-view: false
+    show-sql: ${SHOW_SQL:true}
+    properties:
+      hibernate:
+        jdbc:
+          batch_size: 10
+        order_updates: true
+        order_inserts: true
+        format_sql: true
+        generate_statistics: true
+        default_schema: postgres
+
+  # Flyway configuration
+  flyway:
+    baseline-on-migrate: true
+    enabled: true
+    validate-on-migrate: true
+    baseline-version: 0
+    schemas: postgres
+
+# Kafka
+kafka:
+  bootstrapServers: ${KAFKA_BOOTSTRAP_SERVERS}
+  groupId: ${KAFKA_CARD_GROUP_ID}
+  clientId: ${KAFKA_CARD_CLIENT_ID}
+  acksConfig: ${KAFKA_ACKS_CONFIG}
+  retriesConfig: ${KAFKA_RETRIES_CONFIG:3}
+  lingerMsConfig: ${KAFKA_LINGER_MS_CONFIG:100}
+  clientDnsLookup: ${KAFKA_CLIENT_DNS_LOOKUP}
+  batchSizeConfig: ${KAFKA_BATCH_SIZE_CONFIG:16384}
+  bufferMemoryConfig: ${KAFKA_BUFFER_MEMORY_CONFIG:32768}
+  autoOffsetResetConfig: ${KAFKA_AUTO_OFFSET_RESET_CONFIG}
+  saslProtocol: ${KAFKA_SASL_PROTOCOL}
+  saslMechanism: ${KAFKA_SASL_MECHANISM}
+  saslUsername: ${KAFKA_SASL_USERNAME}
+  saslPassword: ${KAFKA_SASL_PASSWORD}
+
+  topics:
+
+# Tomcat configuration
+server:
+  port: 8081

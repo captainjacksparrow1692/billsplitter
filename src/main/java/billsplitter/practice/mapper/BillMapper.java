@@ -12,13 +12,15 @@ import org.mapstruct.Mapping;
 public interface BillMapper {
 
     // Request → Entity
-    @Mapping(target = "commissionPercent", ignore = true) // сервис сам посчитает
+    @Mapping(target = "commissionPercent", ignore = true)
     Bill toEntity(BillRequestDto dto);
 
     // PersonCostDto → Person
+    @Mapping(source = "cost", target = "cost")
     Person toEntity(PersonCostDto dto);
 
     // Person → PersonCostDto
+    @Mapping(source = "cost", target = "cost")
     PersonCostDto toDto(Person person);
 
     // Entity → Response

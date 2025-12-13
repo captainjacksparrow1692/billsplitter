@@ -73,7 +73,7 @@ class BillServiceImplTest {
 
         assertThat(response).isNotNull();
         assertThat(response.getCommission()).isEqualByComparingTo(expectedCommission);
-        assertThat(response.getTotalWithCommission())
+        assertThat(response.getTotalCost())
                 .isEqualByComparingTo(expectedTotalWithCommission);
 
         verify(billMapper, times(1)).toEntity(request);
